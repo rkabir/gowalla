@@ -3,11 +3,11 @@ require 'forwardable'
 module Gowalla
   class Client
     extend Forwardable
-    
+
     attr_reader :username, :api_key, :api_secret
-    
+
     def_delegators :oauth_client, :web_server, :authorize_url, :access_token_url
-    
+
     def initialize(options={})
       @api_key = options[:api_key] || Gowalla.api_key
       @api_secret = options[:api_secret] || Gowalla.api_secret
@@ -17,7 +17,7 @@ module Gowalla
       connection.basic_auth(@username, password) unless @api_secret
       connection.token_auth(@access_token) if @access_token
     end
-    
+
     # Retrieve information about a specific user
     #
     # @param [String] user_id (authenticated basic auth user) User ID (screen name)
@@ -62,7 +62,7 @@ module Gowalla
     def trip(trip_id)
       connection.get("/trips/#{trip_id}").body
     end
-    
+
     # Retrieve information about a specific spot
     #
     # @param [Integer] spot_id Spot ID
@@ -70,7 +70,7 @@ module Gowalla
     def spot(spot_id)
       connection.get("/spots/#{spot_id}").body
     end
-    
+
     # Retrieve a list of check-ins at a particular spot. Shows only the activity that is visible to a given user.
     #
     # @param [Integer] spot_id Spot ID
@@ -78,7 +78,7 @@ module Gowalla
     def spot_events(spot_id)
       connection.get("/spots/#{spot_id}/events").body.activity
     end
-    
+
     # Retrieve a list of items available at a particular spot
     #
     # @param [Integer] spot_id Spot ID
@@ -86,11 +86,11 @@ module Gowalla
     def spot_items(spot_id)
       connection.get("/spots/#{spot_id}/items").body.items
     end
-    
+
     # Retrieve a list of spots within a specified distance of a location
     #
-    # @option options [Float] :latitude Latitude of search location
-    # @option options [Float] :longitude Longitude of search location
+    # @option options [Float] :lat Latitude of search location
+    # @option options [Float] :lng Longitude of search location
     # @option options [Integer] :radius Search radius (in meters)
     # @return [Hashie::Mash] spots info
     def list_spots(options={})
@@ -100,7 +100,7 @@ module Gowalla
       end
       response.body.spots
     end
-    
+
     # List of trips
     #
     # @return [<Hashie::Mash>] trip info
@@ -121,7 +121,7 @@ module Gowalla
     def categories
       connection.get("/categories").body.spot_categories
     end
-    
+
     # Retrieve information about a specific category
     #
     # @param [Integer] id Category ID
@@ -129,15 +129,15 @@ module Gowalla
     def category(id)
       connection.get("/categories/#{id}").body
     end
-    
+
     # Check for missing access token
     #
     # @return [Boolean] whether or not to redirect to get an access token
     def needs_access?
       @api_secret and @access_token.to_s == ''
     end
-    
-    # Raw HTTP connection, either Faraday::Connection 
+
+    # Raw HTTP connection, either Faraday::Connection
     #
     # @return [Faraday::Connection]
     def connection
@@ -149,18 +149,18 @@ module Gowalla
         builder.use Faraday::Response::MultiJson
         builder.use Faraday::Response::Mashify
       end
-            
+
     end
-    
+
     # Provides raw access to the OAuth2 Client
     #
-    # @return [OAuth2::Client] 
+    # @return [OAuth2::Client]
     def oauth_client
       if @oauth_client
         @oauth_client
       else
         conn ||= Faraday::Connection.new \
-          :url => "https://api.gowalla.com", 
+          :url => "https://api.gowalla.com",
           :headers => default_headers
 
         oauth= OAuth2::Client.new(api_key, api_secret, oauth_options = {
@@ -174,7 +174,7 @@ module Gowalla
     end
 
     private
-    
+
       # @private
       def format_geo_options(options={})
         options[:lat] = "+#{options[:lat]}" if options[:lat].to_i > 0
@@ -184,17 +184,17 @@ module Gowalla
         end
         options
       end
-      
+
       # @private
       def default_headers
         headers = {
-          :accept =>  'application/json', 
+          :accept =>  'application/json',
           :user_agent => 'Ruby gem',
           'X-Gowalla-API-Key' => api_key
         }
       end
-      
-    
+
+
   end
-  
+
 end
